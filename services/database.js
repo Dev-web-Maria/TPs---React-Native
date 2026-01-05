@@ -1,8 +1,15 @@
-import * as SQLite from "expo-sqlite";
+import { Platform } from "react-native";
 
-export const db = SQLite.openDatabaseSync("todos.db");
+let db = null;
+
+if (Platform.OS !== "web") {
+  const SQLite = require("expo-sqlite");
+  db = SQLite.openDatabaseSync("todos.db");
+}
 
 export const initDB = () => {
+  if (!db) return;
+
   db.execSync(`
     CREATE TABLE IF NOT EXISTS todos (
       id INTEGER PRIMARY KEY,
@@ -12,17 +19,33 @@ export const initDB = () => {
 };
 
 export const addTodoOffline = (title) => {
-  db.runSync("INSERT INTO todos (id, title) VALUES (?, ?)", [Date.now(), title]);
+  if (!db) return;
+
+  db.runSync(
+    "INSERT INTO todos (id, title) VALUES (?, ?)",
+    [Date.now(), title]
+  );
 };
 
 export const updateTodoOffline = (id, title) => {
-  db.runSync("UPDATE todos SET title = ? WHERE id = ?", [title, id]);
+  if (!db) return;
+
+  db.runSync(
+    "UPDATE todos SET title = ? WHERE id = ?",
+    [title, id]
+  );
 };
 
 export const deleteTodoOffline = (id) => {
-  db.runSync("DELETE FROM todos WHERE id = ?", [id]);
+  if (!db) return;
+
+  db.runSync(
+    "DELETE FROM todos WHERE id = ?",
+    [id]
+  );
 };
 
-export const loadTodos = () => {
+export const loadTodosOffline = () => {
+  if (!db) return [];
   return db.getAllSync("SELECT * FROM todos ORDER BY id DESC");
 };
